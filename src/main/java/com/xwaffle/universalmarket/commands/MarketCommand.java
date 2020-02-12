@@ -5,10 +5,13 @@ import com.xwaffle.universalmarket.market.MarketItem;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.data.type.HandType;
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
+import org.spongepowered.api.item.ItemType;
+import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
@@ -25,6 +28,12 @@ public class MarketCommand extends BasicCommand {
         super("", "The Main market Command.", "/market");
     }
 
+    //start fix TheKlimoT
+    public boolean isAir(ItemStack stack) {
+        ItemType type = stack.getItem();
+        return type.equals(ItemTypes.AIR);
+    }
+    //end fix TheKlimoT
     @Override
     public CommandResult process(CommandSource source, String arguments) throws CommandException {
         String[] args = arguments.split(" ");
@@ -75,7 +84,7 @@ public class MarketCommand extends BasicCommand {
 
                     int listingCount = UniversalMarket.getInstance().getMarket().countListings(player.getUniqueId());
                     if (args.length < 2) {
-                        player.sendMessage(Text.of(TextColors.RED, "Invalid Command!"));
+                        player.sendMessage(Text.of(TextColors.RED, "Неверная команда!"));
                         player.sendMessage(Text.of(TextColors.YELLOW, "/um " + args[0].toLowerCase() + " (price of item in hand) (<optional> Amount)"));
                         return CommandResult.success();
                     }
@@ -100,7 +109,12 @@ public class MarketCommand extends BasicCommand {
                             player.sendMessage(Text.of(TextColors.RED, "You only have permission to sell ", TextColors.GRAY, userMaxSellPerm, TextColors.RED, " items in the market."));
                             return CommandResult.success();
                         }
-
+                        //start fix TheKlimoT
+                        if(isAir(player.getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.empty()))){
+                            player.sendMessage(Text.of(TextColors.RED, "У вас пустая рука."));
+                            return CommandResult.success();
+                        }
+                        //end fix TheKlimoT
                     }
 
 
@@ -194,7 +208,7 @@ public class MarketCommand extends BasicCommand {
 
                         int id = UniversalMarket.getInstance().getDatabase().createEntry(stack.copy(), player.getUniqueId(), player.getName(), price, System.currentTimeMillis() + expireTime);
                         UniversalMarket.getInstance().getMarket().addItem(new MarketItem(id, stack.copy(), player.getUniqueId(), player.getName(), price, (System.currentTimeMillis() + expireTime)), false);
-                        player.sendMessage(Text.of(TextColors.YELLOW, "Item added to ", TextColors.GRAY, "UniversalMarket", TextColors.YELLOW, " for $", TextColors.DARK_AQUA, price));
+                        player.sendMessage(Text.of(TextColors.YELLOW, "Предмет добавлен в продажу", TextColors.YELLOW, " за $", TextColors.DARK_AQUA, price));
 
                         if (amount != prevAmount) {
                             stack.setQuantity(prevAmount - amount);
@@ -209,12 +223,12 @@ public class MarketCommand extends BasicCommand {
                 case "help":
                 case "h":
                 case "?":
-                    source.sendMessage(Text.of(TextColors.DARK_AQUA, "Universal Market Help"));
-                    source.sendMessage(Text.of(TextColors.YELLOW, "/um or /universalmarket"));
-                    source.sendMessage(Text.of(TextColors.YELLOW, "/um a (price) (<optional> amount) or /um add (price) (<optional> amount)", TextColors.GRAY, " - ", TextColors.GREEN, "Sells current held ItemStack for price."));
-                    source.sendMessage(Text.of(TextColors.YELLOW, "/um o or /um open", TextColors.GRAY, " - ", TextColors.GREEN, "Open the Universal Market."));
-                    source.sendMessage(Text.of(TextColors.YELLOW, "/um i or /um info", TextColors.GRAY, " - ", TextColors.GREEN, "Display the current configuration of the market."));
-                    source.sendMessage(Text.of(TextColors.YELLOW, "/um r or /um reload", TextColors.GRAY, " - ", TextColors.GREEN, "Reloads the market config."));
+                    source.sendMessage(Text.of(TextColors.DARK_AQUA, "Магазин предметов | Подсказки"));
+                    source.sendMessage(Text.of(TextColors.YELLOW, "/um или /universalmarket"));
+                    source.sendMessage(Text.of(TextColors.YELLOW, "/um a (цена) (<опционально> amount) или /um add (цена) (<опционально> amount)", TextColors.GRAY, " - ", TextColors.GREEN, "Продажа предмета, держите предмет в руке."));
+                    source.sendMessage(Text.of(TextColors.YELLOW, "/um o или /um open", TextColors.GRAY, " - ", TextColors.GREEN, "Открыть магазин предметов."));
+                    source.sendMessage(Text.of(TextColors.YELLOW, "/um i или /um info", TextColors.GRAY, " - ", TextColors.GREEN, "Отобразить настройки магазина."));
+                    source.sendMessage(Text.of(TextColors.YELLOW, "/um r или /um reload", TextColors.GRAY, " - ", TextColors.GREEN, "Перезагрузка конфига."));
                     break;
                 case "reload":
                 case "r":

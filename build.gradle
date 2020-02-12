@@ -8,7 +8,7 @@ buildscript {
     }
 }
 apply plugin: 'net.minecraftforge.gradle.forge'
-
+compileJava.options.encoding = 'UTF-8'
 minecraft {
     version = "1.12.2-14.23.1.2589"
     runDir = "run"
@@ -26,7 +26,7 @@ version = pluginVersion
 
 dependencies {
     compile 'org.spongepowered:spongeapi:7.0.0'
-    compile files('libs/spongeforge-1.12.2-2555-7.1.0-BETA-2837.jar')
+    compile files('libs/spongeforge-1.12.2-2838-7.1.10-RC3994.jar')
 
 }
 
@@ -39,4 +39,7 @@ repositories {
     flatDir {
         dirs 'libs'
     }
+}
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
 }

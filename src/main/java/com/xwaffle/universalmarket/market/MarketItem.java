@@ -113,8 +113,8 @@ public class MarketItem {
         }
 
         lore.add(Text.of(""));
-        lore.add(Text.of(TextColors.AQUA, "SELLER: ", TextColors.YELLOW, getOwnerName()));
-        lore.add(Text.of(TextColors.AQUA, "PRICE: ", TextColors.GOLD, getPrice()));
+        lore.add(Text.of(TextColors.AQUA, "Продавец: ", TextColors.YELLOW, getOwnerName()));
+        lore.add(Text.of(TextColors.AQUA, "Цена: ", TextColors.GOLD, getPrice()));
 
         if (UniversalMarket.getInstance().getMarket().expireItems()) {
             lore.add(Text.of(TextColors.AQUA, "EXPIRES: ", TextColors.GRAY, getExpireTimeFromNow()));

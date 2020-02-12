@@ -168,7 +168,7 @@ public class Market {
     }
 
     public void openMarket(Player player, int page) {
-        Inventory inv = new InventoryBuilder("Universal Market | " + (page), 6) {
+        Inventory inv = new InventoryBuilder("Магазин предметов | " + (page), 6) {
             @Override
             public void onClickInventoryEvent(ClickInventoryEvent e) {
                 e.setCancelled(true);
@@ -217,7 +217,7 @@ public class Market {
                             }
                             Sponge.getScheduler().createTaskBuilder().execute(() -> {
                                 player.closeInventory();
-                                player.sendMessage(Text.of(TextColors.GREEN, "Your items have been removed from the Market."));
+                                player.sendMessage(Text.of(TextColors.GREEN, "Ваши предметы возвращены в инвентарь."));
                             }).delayTicks(1).submit(UniversalMarket.getInstance());
 
                         }
@@ -263,13 +263,13 @@ public class Market {
             myList.get(i).set(new ItemBuilder(ItemTypes.STAINED_GLASS_PANE, 1).setName(Text.of("")).setDyeColor(DyeColors.LIME).build());
         }
         if (page > 1) {
-            myList.get(45).set(new ItemBuilder(ItemTypes.ARROW).setName(Text.of(TextColors.YELLOW, "Previous Page")).build());
+            myList.get(45).set(new ItemBuilder(ItemTypes.ARROW).setName(Text.of(TextColors.YELLOW, "Предыдущая страница")).build());
         }
         if (getListings().size() >= (page * 45)) {
-            myList.get(53).set(new ItemBuilder(ItemTypes.ARROW).setName(Text.of(TextColors.YELLOW, "Next Page")).build());
+            myList.get(53).set(new ItemBuilder(ItemTypes.ARROW).setName(Text.of(TextColors.YELLOW, "Следующая страница")).build());
         }
         if (countListings(player.getUniqueId()) > 0) {
-            myList.get(47).set(new ItemBuilder(ItemTypes.NAME_TAG).setName(Text.of(TextColors.GREEN, "Return Your Items")).setLore(Text.of(TextColors.GRAY, "Return all items that you've put up for sell.")).build());
+            myList.get(47).set(new ItemBuilder(ItemTypes.NAME_TAG).setName(Text.of(TextColors.GREEN, "Вернуть предметы из магазина")).setLore(Text.of(TextColors.GRAY, "Return all items that you've put up for sell.")).build());
         }
         player.openInventory(inv);
     }
@@ -308,7 +308,7 @@ public class Market {
                             return;
                         }
 
-                        player.sendMessage(Text.of(TextColors.DARK_GRAY, "Removed item from UniversalMarket."));
+                        player.sendMessage(Text.of(TextColors.GREEN, "Предмет удален из магазина."));
                         playerInv.offer(marketItem.getItem() );
                         marketItem.delete();
                         Sponge.getScheduler().createTaskBuilder().execute(() ->
@@ -338,13 +338,13 @@ public class Market {
 
                         if (account.getBalance(currency).doubleValue() >= marketItem.getPrice()) {
                             item.delete();
-                            player.sendMessage(Text.of(TextColors.DARK_GRAY, "Item Purchased"));
+                            player.sendMessage(Text.of(TextColors.GREEN, "Предмет куплен"));
                             account.withdraw(currency, new BigDecimal(marketItem.getPrice()), Cause.of(EventContext.empty(), UniversalMarket.getInstance()));
                             UniversalMarket.getInstance().getEconomyService().getOrCreateAccount(marketItem.getOwnerUUID()).get().deposit(currency, new BigDecimal(marketItem.getPrice()), Cause.of(EventContext.empty(), UniversalMarket.getInstance()));
-                            Sponge.getServer().getPlayer(marketItem.getOwnerUUID()).ifPresent(seller -> seller.sendMessage(Text.of(TextColors.DARK_GRAY, "Item Sold.")));
+                            Sponge.getServer().getPlayer(marketItem.getOwnerUUID()).ifPresent(seller -> seller.sendMessage(Text.of(TextColors.GREEN, "Предмет  продан.")));
                             Sponge.getServer().getPlayer(marketItem.getOwnerUUID()).ifPresent(seller -> seller.sendMessage(Text.of(TextColors.YELLOW, "+ ", TextColors.GREEN, marketItem.getPrice())));
                             player.sendMessage(Text.of(TextColors.DARK_RED, "- ", TextColors.RED, marketItem.getPrice()));
-                            player.sendMessage(Text.of(TextColors.YELLOW, "New Balance: ", TextColors.GREEN, account.getBalance(currency)));
+                            player.sendMessage(Text.of(TextColors.YELLOW, "Баланс: ", TextColors.GREEN, account.getBalance(currency)));
                             playerInv.offer(item.getItem());
                             Sponge.getScheduler().createTaskBuilder().execute(player::closeInventory).submit(UniversalMarket.getInstance());
                         } else {
