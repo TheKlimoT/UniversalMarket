@@ -204,6 +204,10 @@ public class Market {
                         } else if (slotClicked == 47 && stack.getItem() == ItemTypes.NAME_TAG) {
                             Iterator<MarketItem> iterator = getListings().iterator();
                             while (iterator.hasNext()) {
+                                if (player.getInventory().totalItems() == player.getInventory().capacity()) {
+                                    player.sendMessage(Text.of(TextColors.RED, "У вас заполнен инвентарь."));
+                                    break;
+                                }
                                 MarketItem marketItem = iterator.next();
                                 if (marketItem.getOwnerUUID().equals(player.getUniqueId())) {
                                     player.getInventory().offer(marketItem.getItem());
@@ -296,13 +300,6 @@ public class Market {
                     Inventory playerInv = getMainInventory(player.getInventory());
 
                     if (slotClicked == 0 && marketItem.getOwnerUUID().equals(player.getUniqueId())) {
-                        if (playerInv.size() == playerInv.capacity()) {
-                            player.sendMessage(Text.of(TextColors.RED, "Нет места в инвентаре."));
-                            Sponge.getScheduler().createTaskBuilder().execute(() ->
-                                    player.closeInventory()).submit(UniversalMarket.getInstance());
-
-                            return;
-                        }
                         ItemStack stack = myList.get(4).peek().get();
                         net.minecraft.item.ItemStack nmsStack = ItemStackUtil.toNative(stack);
                         NBTTagCompound nbt = nmsStack.getTagCompound();
@@ -313,6 +310,7 @@ public class Market {
                             Sponge.getScheduler().createTaskBuilder().execute(() -> UniversalMarket.getInstance().getMarket().openMarket(player)).submit(UniversalMarket.getInstance());
                             return;
                         }
+
 
                         player.sendMessage(Text.of(TextColors.GREEN, "Предмет удален из магазина."));
                         playerInv.offer(marketItem.getItem() );
@@ -331,6 +329,14 @@ public class Market {
                         if (!UniversalMarket.getInstance().getMarket().doesItemExist(databaseID)) {
                             player.sendMessage(Text.of(TextColors.RED, "Похоже, что товар больше не продается!"));
                             Sponge.getScheduler().createTaskBuilder().execute(() -> UniversalMarket.getInstance().getMarket().openMarket(player)).submit(UniversalMarket.getInstance());
+                            return;
+                        }
+
+                        if (playerInv.size() == playerInv.capacity()) {
+                            player.sendMessage(Text.of(TextColors.RED, "У вас заполнен инвентарь."));
+                            Sponge.getScheduler().createTaskBuilder().execute(() ->
+                                    player.closeInventory()).submit(UniversalMarket.getInstance());
+
                             return;
                         }
 
