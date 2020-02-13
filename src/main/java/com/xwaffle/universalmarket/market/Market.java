@@ -27,6 +27,7 @@ import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.text.serializer.TextSerializers;
 import org.spongepowered.common.item.inventory.adapter.impl.slots.SlotAdapter;
 import org.spongepowered.common.item.inventory.query.operation.InventoryPropertyQueryOperation;
 import org.spongepowered.common.item.inventory.util.ItemStackUtil;
@@ -203,21 +204,26 @@ public class Market {
                         } else if (slotClicked == 47 && stack.getItem() == ItemTypes.NAME_TAG) {
                             Iterator<MarketItem> iterator = getListings().iterator();
                             while (iterator.hasNext()) {
-                                if (player.getInventory().totalItems() == player.getInventory().capacity()) {
-                                    player.sendMessage(Text.of(TextColors.RED, "You do not have room in your inventory."));
-                                    break;
-                                }
                                 MarketItem marketItem = iterator.next();
                                 if (marketItem.getOwnerUUID().equals(player.getUniqueId())) {
                                     player.getInventory().offer(marketItem.getItem());
                                     UniversalMarket.getInstance().getDatabase().deleteEntry(marketItem.getDatabaseID());
                                     iterator.remove();
-
                                 }
+                                //start fix MrKrab
+                                MainPlayerInventory mainPlayerInventory = player.getInventory().query(QueryOperationTypes.INVENTORY_TYPE.of(MainPlayerInventory.class));
+                                if (mainPlayerInventory.size() > 36 - Market.this.marketItems.size()) {
+                                    player.sendMessage(TextSerializers.FORMATTING_CODE.deserialize("&cВаш инвентарь заполнен. Невозможно вернуть товары. Вам нужно свободных слотов: &e" + Market.this.marketItems.size()));
+                                    return;
+                                }
+                                player.getInventory().offer(marketItem.getItem());
+                                UniversalMarket.getInstance().getDatabase().deleteEntry(marketItem.getDatabaseID());
+                                iterator.remove();
+                                //end fix MrKrab
                             }
                             Sponge.getScheduler().createTaskBuilder().execute(() -> {
                                 player.closeInventory();
-                                player.sendMessage(Text.of(TextColors.GREEN, "Ваши предметы возвращены в инвентарь."));
+                                player.sendMessage(Text.of(TextColors.GREEN, "Ваши товары были удалены с рынка."));
                             }).delayTicks(1).submit(UniversalMarket.getInstance());
 
                         }
@@ -269,7 +275,7 @@ public class Market {
             myList.get(53).set(new ItemBuilder(ItemTypes.ARROW).setName(Text.of(TextColors.YELLOW, "Следующая страница")).build());
         }
         if (countListings(player.getUniqueId()) > 0) {
-            myList.get(47).set(new ItemBuilder(ItemTypes.NAME_TAG).setName(Text.of(TextColors.GREEN, "Вернуть предметы из магазина")).setLore(Text.of(TextColors.GRAY, "Return all items that you've put up for sell.")).build());
+            myList.get(47).set(new ItemBuilder(ItemTypes.NAME_TAG).setName(Text.of(TextColors.GREEN, "Вернуть предметы из магазина")).setLore(Text.of(TextColors.GRAY, "Вернет все предметы, которые вы выставили на продажу.")).build());
         }
         player.openInventory(inv);
     }
@@ -278,7 +284,7 @@ public class Market {
     public void openItemPurchase(Player player, MarketItem marketItem) {
 
         ItemStack background = new ItemBuilder(ItemTypes.STAINED_GLASS_PANE, 1).setName(Text.of("")).setDyeColor(DyeColors.CYAN).build();
-        Inventory inv = new InventoryBuilder("Market Listing", 1) {
+        Inventory inv = new InventoryBuilder("§lСписок товаров на рынке", 1) {
             @Override
             public void onClickInventoryEvent(ClickInventoryEvent e) {
                 e.setCancelled(true);
@@ -291,7 +297,7 @@ public class Market {
 
                     if (slotClicked == 0 && marketItem.getOwnerUUID().equals(player.getUniqueId())) {
                         if (playerInv.size() == playerInv.capacity()) {
-                            player.sendMessage(Text.of(TextColors.RED, "You do not have room in your inventory."));
+                            player.sendMessage(Text.of(TextColors.RED, "Нет места в инвентаре."));
                             Sponge.getScheduler().createTaskBuilder().execute(() ->
                                     player.closeInventory()).submit(UniversalMarket.getInstance());
 
@@ -303,7 +309,7 @@ public class Market {
                         int databaseID = nbt != null ? nbt.getInteger("id") : -1;
 
                         if (!UniversalMarket.getInstance().getMarket().doesItemExist(databaseID)) {
-                            player.sendMessage(Text.of(TextColors.RED, "It appears that item is no longer for sale!"));
+                            player.sendMessage(Text.of(TextColors.RED, "Похоже, что товар больше не продается!"));
                             Sponge.getScheduler().createTaskBuilder().execute(() -> UniversalMarket.getInstance().getMarket().openMarket(player)).submit(UniversalMarket.getInstance());
                             return;
                         }
@@ -323,20 +329,12 @@ public class Market {
                         Currency currency = UniversalMarket.getInstance().getEconomyService().getDefaultCurrency();
 
                         if (!UniversalMarket.getInstance().getMarket().doesItemExist(databaseID)) {
-                            player.sendMessage(Text.of(TextColors.RED, "It appears that item is no longer for sale!"));
+                            player.sendMessage(Text.of(TextColors.RED, "Похоже, что товар больше не продается!"));
                             Sponge.getScheduler().createTaskBuilder().execute(() -> UniversalMarket.getInstance().getMarket().openMarket(player)).submit(UniversalMarket.getInstance());
                             return;
                         }
-                        if (playerInv.size() == playerInv.capacity()) {
-                            player.sendMessage(Text.of(TextColors.RED, "You do not have room in your inventory."));
-                            Sponge.getScheduler().createTaskBuilder().execute(() ->
-                                    player.closeInventory()).submit(UniversalMarket.getInstance());
 
-                            return;
-                        }
-
-
-                        if (account.getBalance(currency).doubleValue() >= marketItem.getPrice()) {
+                            if (account.getBalance(currency).doubleValue() >= marketItem.getPrice()) {
                             item.delete();
                             player.sendMessage(Text.of(TextColors.GREEN, "Предмет куплен"));
                             account.withdraw(currency, new BigDecimal(marketItem.getPrice()), Cause.of(EventContext.empty(), UniversalMarket.getInstance()));
@@ -348,13 +346,13 @@ public class Market {
                             playerInv.offer(item.getItem());
                             Sponge.getScheduler().createTaskBuilder().execute(player::closeInventory).submit(UniversalMarket.getInstance());
                         } else {
-                            player.sendMessage(Text.of(TextColors.RED, "Insufficient funds."));
+                            player.sendMessage(Text.of(TextColors.RED, "Недостаточно средств."));
                         }
                     } else if (slotClicked == 5) {
                         Sponge.getScheduler().createTaskBuilder().execute(() ->
                                 openMarket(player)).submit(UniversalMarket.getInstance());
                     } else if (slotClicked == 8 && player.hasPermission("com.xwaffle.universalmarket.remove")) {
-                        player.sendMessage(Text.of(TextColors.RED, "You removed a players Listing."));
+                        player.sendMessage(Text.of(TextColors.RED, "Вы удалили список игроков."));
                         marketItem.forceExpire();
                         Sponge.getScheduler().createTaskBuilder().execute(player::closeInventory).submit(UniversalMarket.getInstance());
 
@@ -376,21 +374,21 @@ public class Market {
 
 
         if (player.hasPermission("com.xwaffle.universalmarket.remove")) {
-            myList.get(8).set(new ItemBuilder(ItemTypes.LAVA_BUCKET, 1).setName(Text.of(TextColors.GRAY, "Remove Player Listing")).setLore(Text.of(TextColors.RED, "Admin Only")).build());
+            myList.get(8).set(new ItemBuilder(ItemTypes.LAVA_BUCKET, 1).setName(Text.of(TextColors.GRAY, "Удалить список игрока")).setLore(Text.of(TextColors.RED, "Только для администрации")).build());
         }
 
         ItemStack purchaseItem = new ItemBuilder(ItemTypes.DYE, 1, 10)
-                .setName(Text.of(TextColors.YELLOW, "Accept"))
+                .setName(Text.of(TextColors.YELLOW, "Принять"))
                 .setDyeColor(DyeColors.LIME).build();
 
 
         if (marketItem.getOwnerUUID().equals(player.getUniqueId())) {
-            myList.get(0).set(new ItemBuilder(ItemTypes.SHEARS, 1).setName(Text.of(TextColors.GRAY, "Remove Listing")).build());
+            myList.get(0).set(new ItemBuilder(ItemTypes.SHEARS, 1).setName(Text.of(TextColors.GRAY, "Удалить список")).build());
         }
 
         myList.get(3).set(purchaseItem);
         myList.get(4).set(marketItem.getDisplay());
-        ItemStack backItem = new ItemBuilder(ItemTypes.BARRIER, 1).setName(Text.of(TextColors.RED, "Back")).build();
+        ItemStack backItem = new ItemBuilder(ItemTypes.BARRIER, 1).setName(Text.of(TextColors.RED, "Вернуться")).build();
         myList.get(5).set(backItem);
 
         player.openInventory(inv);

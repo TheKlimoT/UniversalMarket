@@ -25,7 +25,7 @@ import java.math.BigDecimal;
  */
 public class MarketCommand extends BasicCommand {
     public MarketCommand() {
-        super("", "The Main market Command.", "/market");
+        super("", "Главная команда рынка.", "/market");
     }
 
     //start fix TheKlimoT
@@ -53,10 +53,10 @@ public class MarketCommand extends BasicCommand {
                 if (player.hasPermission("com.xwaffle.universalmarket.open")) {
                     UniversalMarket.getInstance().getMarket().openMarket(player);
                 } else {
-                    source.sendMessage(Text.of(TextColors.RED, "You do not have permission to view the market."));
+                    source.sendMessage(Text.of(TextColors.RED, "У вас нет прав на открытие этого окна."));
                 }
             } else {
-                source.sendMessage(Text.of(TextColors.RED + "You can't open market from console!"));
+                source.sendMessage(Text.of(TextColors.RED + "Маркте можно открыть только игроку!"));
             }
             return CommandResult.success();
         }
@@ -70,7 +70,7 @@ public class MarketCommand extends BasicCommand {
                     if (player.hasPermission("com.xwaffle.universalmarket.open")) {
                         UniversalMarket.getInstance().getMarket().openMarket(player);
                     } else {
-                        player.sendMessage(Text.of(TextColors.RED, "You do not have permission to view the market."));
+                        player.sendMessage(Text.of(TextColors.RED, "У вас нет прав на открытие этого окна."));
                     }
                     break;
                 case "add":
@@ -78,19 +78,19 @@ public class MarketCommand extends BasicCommand {
                     if (player == null)
                         break;
                     if (!player.hasPermission("com.xwaffle.universalmarket.add")) {
-                        player.sendMessage(Text.of(TextColors.RED, "You do not have permission to add items to the market."));
+                        player.sendMessage(Text.of(TextColors.RED, "У вас нет прав на добавление товара в магазин."));
                         return CommandResult.success();
                     }
 
                     int listingCount = UniversalMarket.getInstance().getMarket().countListings(player.getUniqueId());
                     if (args.length < 2) {
                         player.sendMessage(Text.of(TextColors.RED, "Неверная команда!"));
-                        player.sendMessage(Text.of(TextColors.YELLOW, "/um " + args[0].toLowerCase() + " (price of item in hand) (<optional> Amount)"));
+                        player.sendMessage(Text.of(TextColors.YELLOW, "/um " + args[0].toLowerCase() + " (цена держа предмет в руке) (<опционально> количество)"));
                         return CommandResult.success();
                     }
 
                     if (listingCount >= totalListings) {
-                        player.sendMessage(Text.of(TextColors.RED, "You are already selling the maximum amount of items at a time."));
+                        player.sendMessage(Text.of(TextColors.RED, "Вы уже продаете максимальное количество товаров за один раз."));
                         return CommandResult.success();
                     }
 
@@ -105,8 +105,8 @@ public class MarketCommand extends BasicCommand {
 
 
                         if (userMaxSellPerm <= listingCount) {
-                            player.sendMessage(Text.of(TextColors.RED, "You've reached your maximum amount of items you can sell in the market."));
-                            player.sendMessage(Text.of(TextColors.RED, "You only have permission to sell ", TextColors.GRAY, userMaxSellPerm, TextColors.RED, " items in the market."));
+                            player.sendMessage(Text.of(TextColors.RED, "Вы достигли максимального количества предметов, которые вы можете продать на рынке."));
+                            player.sendMessage(Text.of(TextColors.RED, "У вас есть разрешение на продажу только ", TextColors.GRAY, userMaxSellPerm, TextColors.RED, " предметов на рынке."));
                             return CommandResult.success();
                         }
                         //start fix TheKlimoT
@@ -125,13 +125,13 @@ public class MarketCommand extends BasicCommand {
                             price = Double.parseDouble(args[1]);
 
                             if (price < 0) {
-                                player.sendMessage(Text.of(TextColors.RED, "You must enter a positive price!"));
+                                player.sendMessage(Text.of(TextColors.RED, "Вы ввели неккоректную цену."));
                                 return CommandResult.success();
 
                             }
                         } catch (Exception exc) {
-                            player.sendMessage(Text.of(TextColors.RED, "Invalid Price for Item!"));
-                            player.sendMessage(Text.of(TextColors.YELLOW, "/um " + args[0].toLowerCase() + " (price of item in hand) (<optional> Amount)"));
+                            player.sendMessage(Text.of(TextColors.RED, "Недопустимая сумма для товара!"));
+                            player.sendMessage(Text.of(TextColors.YELLOW, "/um " + args[0].toLowerCase() + " (цена держа в руке) (<опционально> количество)"));
                             return CommandResult.success();
                         }
 
@@ -141,15 +141,15 @@ public class MarketCommand extends BasicCommand {
                             try {
                                 amount = Integer.parseInt(args[2]);
                                 if (amount <= 0) {
-                                    player.sendMessage(Text.of(TextColors.RED, "You must enter a positive number to sell in the market!"));
+                                    player.sendMessage(Text.of(TextColors.RED, "Вы должны ввести положительное число для продажи на рынке!"));
                                     return CommandResult.success();
                                 } else if (amount > stack.getQuantity()) {
-                                    player.sendMessage(Text.of(TextColors.RED, "You can not sell more than what you're holding."));
+                                    player.sendMessage(Text.of(TextColors.RED, "Нельзя продать больше чем у вас есть!"));
                                     return CommandResult.success();
                                 }
                             } catch (Exception exc) {
-                                player.sendMessage(Text.of(TextColors.RED, "Invalid Amount for Item!"));
-                                player.sendMessage(Text.of(TextColors.YELLOW, "/um " + args[0].toLowerCase() + " (price of item in hand) (<optional> Amount)"));
+                                player.sendMessage(Text.of(TextColors.RED, "Недопустимая сумма для товара!"));
+                                player.sendMessage(Text.of(TextColors.YELLOW, "/um " + args[0].toLowerCase() + " (цена держа в руке) (<опционально> количество)"));
                                 return CommandResult.success();
                             }
                         }
@@ -165,13 +165,13 @@ public class MarketCommand extends BasicCommand {
                             UniqueAccount account = UniversalMarket.getInstance().getEconomyService().getOrCreateAccount(player.getUniqueId()).get();
                             Currency currency = UniversalMarket.getInstance().getEconomyService().getDefaultCurrency();
                             if (account.getBalance(currency).doubleValue() < tax) {
-                                player.sendMessage(Text.of(TextColors.RED, "You can not afford the item tax!"));
-                                player.sendMessage(Text.of(TextColors.RED, "You must pay ", TextColors.YELLOW, UniversalMarket.getInstance().getMarket().getTax(), TextColors.RED, " of the item price."));
-                                player.sendMessage(Text.of(TextColors.RED, "You need to pay ", TextColors.GREEN, tax, TextColors.RED, " in order to sell this item in the market."));
+                                player.sendMessage(Text.of(TextColors.RED, "Вам не хватает денег для уплаты налога за выставление товара на продажу!"));
+                                player.sendMessage(Text.of(TextColors.RED, "Вы должны заплатить ", TextColors.YELLOW, UniversalMarket.getInstance().getMarket().getTax(), TextColors.RED, " от цены товара."));
+                                player.sendMessage(Text.of(TextColors.RED, "Вы должны заплатить ", TextColors.GREEN, tax, TextColors.RED, " для продажи этого товара на рынке."));
                                 return CommandResult.success();
                             } else {
                                 account.withdraw(currency, new BigDecimal(tax), Cause.of(EventContext.empty(), UniversalMarket.getInstance()));
-                                player.sendMessage(Text.of(TextColors.RED, "Tax for selling the item has been taken from you!"));
+                                player.sendMessage(Text.of(TextColors.RED, "Вы заплатили налог за выставление товара на продажу!"));
                                 player.sendMessage(Text.of(TextColors.DARK_RED, "- $", TextColors.RED, tax));
                             }
                         }
@@ -181,17 +181,17 @@ public class MarketCommand extends BasicCommand {
                             UniqueAccount account = UniversalMarket.getInstance().getEconomyService().getOrCreateAccount(player.getUniqueId()).get();
                             Currency currency = UniversalMarket.getInstance().getEconomyService().getDefaultCurrency();
                             if (account.getBalance(currency).doubleValue() < flatPrice) {
-                                player.sendMessage(Text.of(TextColors.RED, "You must pay ", TextColors.GRAY, "$" + flatPrice, TextColors.RED, " in order to sell in the market."));
+                                player.sendMessage(Text.of(TextColors.RED, "Вы должны заплатить ", TextColors.GRAY, "$" + flatPrice, TextColors.RED, " для продажи на рынке."));
                                 return CommandResult.success();
                             } else {
                                 account.withdraw(currency, new BigDecimal(flatPrice), Cause.of(EventContext.empty(), UniversalMarket.getInstance()));
-                                player.sendMessage(Text.of(TextColors.RED, "A Market fee has been taken out!"));
+                                player.sendMessage(Text.of(TextColors.RED, "Была взята рыночная плата!"));
                                 player.sendMessage(Text.of(TextColors.DARK_RED, "- $", TextColors.RED, flatPrice));
                             }
                         }
 
                         if (UniversalMarket.getInstance().getMarket().isItemBlacklisted(stack.getType())) {
-                            player.sendMessage(Text.of(TextColors.RED, "This item cannot be sold (" + stack.getType().getId() + ")"));
+                            player.sendMessage(Text.of(TextColors.RED, "Этот товар не может быть продан (" + stack.getType().getId() + ")"));
                             return CommandResult.success();
                         }
 
@@ -217,7 +217,7 @@ public class MarketCommand extends BasicCommand {
 
 
                     } else {
-                        player.sendMessage(Text.of(TextColors.RED, "Place an item in your hand to sell!"));
+                        player.sendMessage(Text.of(TextColors.RED, "Поместите предмет в вашу руку, чтобы продать!"));
                     }
                     break;
                 case "help":
@@ -234,14 +234,14 @@ public class MarketCommand extends BasicCommand {
                 case "r":
                     if (source.hasPermission("com.xwaffle.universalmarket.reload")) {
                         UniversalMarket.getInstance().getMarket().reloadConfig();
-                        source.sendMessage(Text.of(TextColors.GREEN, "Market Config Reloaded!"));
+                        source.sendMessage(Text.of(TextColors.GREEN, "Конфиг маркета перезагружен!"));
                     } else {
-                        source.sendMessage(Text.of(TextColors.RED, "Youre missing permissions to reload the market!"));
+                        source.sendMessage(Text.of(TextColors.RED, "У вас нет прав на это!"));
                     }
                     break;
                 case "info":
                 case "i":
-                    source.sendMessage(Text.of(TextColors.DARK_AQUA, "Current Tax Percentage: ", TextColors.AQUA, UniversalMarket.getInstance().getMarket().getTax()));
+                    source.sendMessage(Text.of(TextColors.DARK_AQUA, "Текущий налоговый процент: ", TextColors.AQUA, UniversalMarket.getInstance().getMarket().getTax()));
                     break;
             }
         } else {
