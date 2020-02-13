@@ -220,9 +220,6 @@ public class Market {
                                     player.sendMessage(TextSerializers.FORMATTING_CODE.deserialize("&cВаш инвентарь заполнен. Невозможно вернуть товары. Вам нужно свободных слотов: &e" + Market.this.marketItems.size()));
                                     return;
                                 }
-                                player.getInventory().offer(marketItem.getItem());
-                                UniversalMarket.getInstance().getDatabase().deleteEntry(marketItem.getDatabaseID());
-                                iterator.remove();
                                 //end fix MrKrab
                             }
                             Sponge.getScheduler().createTaskBuilder().execute(() -> {
